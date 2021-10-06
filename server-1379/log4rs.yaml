@@ -1,0 +1,32 @@
+appenders:
+  stdout:
+    kind: console
+    encoder:
+      pattern: "[Console] {d} - {l} -{t} - {m}{n}"
+
+  file:
+    kind: rolling_file
+    path: "logs/requests.log"
+    encoder:
+      pattern: "[File] {d} - {l} - {t} - {m}{n}"
+    policy:
+      # 默认值, 即使用所有 policy
+      kind: compound 
+      # 当文件超过10mb 时触发 rotate
+      trigger: 
+        kind: size
+        limit: 5 mb
+      # rotate 类型
+      roller:
+        # delete or fixed_window
+        kind: fixed_window 
+        # 注意, 需要至少包含 "{}" 用于插入索引值
+        pattern: 'logs/requests_{}.log' 
+        # 压缩日志索引值起点
+        base: 1 
+        # 最大保存压缩文件数
+        count: 20
+root:
+  appenders:
+    - stdout
+    - file

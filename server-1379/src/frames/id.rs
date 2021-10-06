@@ -1,0 +1,1 @@
+pub const SESSION_USER_KEY: &str = "user_infos_1379";

@@ -1,0 +1,29 @@
+[package]
+name = "server-1379"
+version = "0.1.0"
+edition = "2018"
+authors = ["1379_pudge <EternalNightYeah2@yeah.net>"]
+description = "a three body 1379 monitor site"
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+actix = "0.10"
+actix-web = "3"
+actix-cors = "0.5"
+actix-files = "0.5"
+actix-web-actors = "3"
+actix-session = "0.4"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1"
+lazy_static = "1.4.0"
+tokio = { version = "1", features = ["full"] }
+diesel = {version = "1.4", features = ["postgres", "chrono", "r2d2"]}
+r2d2 = "0.8"
+tokio-diesel = "0.3"
+sanitize-filename = "0.3.0"
+log = "0.4"
+log4rs = "^1.0.0"
+
+[target.'cfg(target_os = "windows")'.dependencies]
+dotenv = "0.15.0"
+
