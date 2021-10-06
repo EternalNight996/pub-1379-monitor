@@ -1,0 +1,9 @@
+/server-1379/target
+/server-1379/WorkTemps
+/server-1379/logs
+/server-1379/dist
+/server-1379/Cargo.lock
+/ui-1379/node_modules
+/ui-1379/dist
+/ui-1379/package-lock.json
+/ui-1379/yarn.lock

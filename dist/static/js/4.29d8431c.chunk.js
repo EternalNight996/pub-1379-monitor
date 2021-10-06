@@ -1,0 +1,2 @@
+(this["webpackJsonpmy-react"]=this["webpackJsonpmy-react"]||[]).push([[4],{373:function(t,e,c){"use strict";c.r(e);var a=c(29),n=c(30),r=c(32),s=c(31),u=c(0),i=(c(43),c(174)),o=c(1),b=function(t){Object(r.a)(c,t);var e=Object(s.a)(c);function c(t){return Object(a.a)(this,c),e.call(this,t)}return Object(n.a)(c,[{key:"render",value:function(){return Object(o.jsx)("div",{className:"chat-layout",children:Object(o.jsx)(i.a,{})})}}]),c}(u.Component);e.default=b}}]);
+//# sourceMappingURL=4.29d8431c.chunk.js.map

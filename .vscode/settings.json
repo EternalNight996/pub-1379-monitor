@@ -1,0 +1,6 @@
+{
+    "Lua.diagnostics.globals": [
+        "ngx",
+        "redis_link"
+    ]
+}

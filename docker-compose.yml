@@ -1,0 +1,125 @@
+version: '3.9'
+services:
+  redis:
+    image: redis:6.2.5-alpine
+    container_name: redis-1379
+    hostname: redis
+    restart: always
+    environment:
+      - TZ=Asia/Shanghai
+    ports:
+      - 6379:6379
+    volumes:
+      - ./redis/redis.conf:/etc/redis/redis.conf:ro
+      - ./redis/sysctl.conf:/etc/sysctl.conf:ro
+      - ./redis/data:/data
+      - /etc/localtime:/etc/localtime:ro
+    command: redis-server /etc/redis/redis.conf --requirepass 9527
+    networks:
+      - net-1379
+
+  redis-s1:
+    image: redis:6.2.5-alpine
+    hostname: redis-s1
+    container_name: redis-s1-1379
+    restart: always
+    environment:
+      - TZ=Asia/Shanghai
+    ports:
+      - 6380:6379
+    volumes:
+      - ./redis/s1/redis.conf:/etc/redis/redis.conf:ro
+      - ./redis/s1/sysctl.conf:/etc/sysctl.conf:ro
+      - ./redis/s1/data:/data
+      - /etc/localtime:/etc/localtime:ro
+    command: redis-server /etc/redis/redis.conf --requirepass 9527
+    networks:
+      - net-1379
+
+  postgres:
+    image: postgres:14.0-alpine
+    hostname: postgres
+    container_name: postgres-1379
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: pudge9527
+      POSTGRES_DB: postgres
+      PGDATA: /var/lib/postgresql/data/pgdata
+
+    volumes:
+      - ./postgres/data:/var/lib/postgresql/data/pgdata
+      - ./postgres/logs:/var/log/postgresql
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:rw
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - net-1379
+      
+  web-server:
+    hostname: web-server
+    build:
+      context: .
+      dockerfile: web.dockerfile
+    restart: always
+    privileged: true
+    container_name: server-1379
+    environment:
+      - PG_DATABASE_URL=postgres://postgres:9527@postgres:5432/postgres
+      - EXCEL_WORK_TEMPS=/home/web-app/WorkTemps
+      - PUB_ASSETS=/home/web-app/dist
+      - WEB_CONFIG_PATH=/home/web-app
+      - WEB_SERVER_HOST=0.0.0.0
+      - WEB_SERVER_PORT=9528
+      - WEB_SERVER_WORKERS=8
+    volumes:
+      - ./web-app:/home/web-app
+      - ./web-app/logs:/home/web-app/logs
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - 9528:9528
+    depends_on:
+      - redis
+      - redis-s1
+      - postgres
+    networks:
+      - net-1379
+    links:
+      - redis
+      - redis-s1
+      - postgres
+
+  openresty:
+    image: ficusio/openresty:latest
+    hostname: openresty
+    container_name: openresty-1379
+    restart: always
+    privileged: true
+    environment:
+      - TZ=Asia/Shanghai
+      - REDIS_PWD=9527
+      - REDIS_DB=1379DB
+    ports:
+      - 80:80
+      - 443:443
+    depends_on:
+      - redis-s1
+      - web-server
+    volumes:
+      - ./openresty/nginx.conf:/opt/openresty/nginx/conf/nginx.conf:rw
+      - ./openresty/logs:/var/log/nginx
+      - ./openresty/lualib:/opt/openresty/lualib
+      - ./openresty/conf.d:/opt/openresty/nginx/conf.d
+      - ./web-app/dist:/opt/openresty/nginx/html
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - net-1379
+      
+    links:
+      - redis-s1
+      - web-server
+
+networks:
+  net-1379:
+    external: false
