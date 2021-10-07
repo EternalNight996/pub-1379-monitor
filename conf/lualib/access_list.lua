@@ -1,7 +1,7 @@
 local redis_req = require("resty.redis")
 local upstream = require "ngx.upstream"
 
--- 黑名单缓存60秒
+-- 名单缓存60秒
 local cache_idle = 60
 local deny_ips = ngx.shared.deny_ips
 local allow_ips = ngx.shared.allow_ips
@@ -105,7 +105,7 @@ local function get_access_list()
 	return list
 end
 
--- 刷新黑名单
+-- 刷新名单
 local function reflush_access_list()
 	local current_time = ngx.now()
 	local last_update_time = allow_ips:get("last_update_time")
@@ -124,8 +124,7 @@ local function reflush_access_list()
 			end
 			expire = tonumber(expire)
 			print("deny.ttl expire ", expire)
-			deny_ips:set(deny_ip, true)
-			deny_ips:set(deny_ip.."expire", expire)
+			deny_ips:set(deny_ip, expire)
 		end
 		for _, allow_ip in ipairs(new_list[1]) do
 			local expire = red:hget("allow.ttl", allow_ip)
@@ -134,8 +133,7 @@ local function reflush_access_list()
 			end
 			expire = tonumber(expire)
 			print("allow.ttl expire ", expire)
-			allow_ips:set(allow_ip, true)
-			allow_ips:set(allow_ip.."expire", expire)
+			allow_ips:set(allow_ip, expire)
 		end
 		allow_ips:set("last_update_time", current_time);
 	end
@@ -157,8 +155,8 @@ reflush_access_list()
 local ip = getIp()
 
 -- 白名单排查
-if allow_ips:get(ip) then
-	local expire = allow_ips:get(ip.."expire")
+local expire = allow_ips:get(ip)
+if expire then
 	print("allow expire: ",expire, " ttl: ", expire - ngx.now())
 	if expire - ngx.now() > 0 then
 		ngx.log(ngx.INFO, "allow ip refused access : ", ip)
@@ -168,8 +166,8 @@ if allow_ips:get(ip) then
 end
 
 --  黑名单排查
-if deny_ips:get(ip) then
-	local expire = deny_ips:get(ip.."expire")
+local expire = deny_ips:get(ip)
+if expire then
 	print("deny expire: ",expire, " ttl: ", expire - ngx.now())
 	if expire - ngx.now() > 0 then
 		ngx.log(ngx.INFO, "deny ip refused access : ", ip)
